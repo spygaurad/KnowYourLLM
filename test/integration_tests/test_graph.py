@@ -1,7 +1,6 @@
 import pytest
 from langsmith import unit
-
-from src.examples.agent import graph
+from src.examples.agent.graph import graph
 
 
 @pytest.mark.asyncio

@@ -8,8 +8,8 @@ from typing import Any, Dict
 from langchain_core.runnables import RunnableConfig
 from langgraph.graph import StateGraph
 
-from agent.configuration import Configuration
-from agent.state import State
+from src.examples.agent.configuration import Configuration
+from src.examples.agent.state import State
 
 
 async def my_node(state: State, config: RunnableConfig) -> Dict[str, Any]:
