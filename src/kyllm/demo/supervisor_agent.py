@@ -23,7 +23,7 @@ from langchain_ollama.llms import OllamaLLM
 
 from langchain_experimental.llms.ollama_functions import OllamaFunctions
 
-llm = OllamaFunctions(model="llama3.1", format="json")
+llm = OllamaFunctions(model="llama3.1:70b", format="json")
 
 load_dotenv()
 
