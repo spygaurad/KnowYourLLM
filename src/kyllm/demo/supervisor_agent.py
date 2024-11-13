@@ -19,9 +19,7 @@ from langchain_core.messages import BaseMessage
 
 from langgraph.graph import END, StateGraph, START
 from langgraph.prebuilt import create_react_agent
-
-from langchain_community.chat_models import ChatOllama
-
+from langchain_ollama.llms import OllamaLLM
 
 
 load_dotenv()
@@ -69,7 +67,7 @@ prompt = ChatPromptTemplate.from_messages(
 ).partial(options=str(options), members=", ".join(members))
 
 
-llm = ChatOllama(model="openhermes")
+llm = OllamaLLM(model="llama3.1")
 
 def supervisor_agent(state):
     supervisor_chain = prompt | llm.with_structured_output(routeResponse)
