@@ -57,7 +57,7 @@ def analyze_question(state):
     chain = prompt | llm
     response = chain.invoke({"input": state["input"]})
 
-    logging.info("Got response from LLM : ")
+    logging.info(f"Got response from LLM : {response}")
     # try:
     if model=="ollama":
         decision = response
@@ -89,6 +89,8 @@ def answer_generic_question(state):
 
     logging.info("Generic Question Detected: Generating Answer ")
     response = chain.invoke({"input": state["input"]})
+
+    logging.info(f"Generated Answer: {response}")
 
     return {"output": response}
 
@@ -135,7 +137,7 @@ def process_question(state: UserInput):
     graph = create_graph()
     result = graph.invoke({"input": state["input"]})
     logging.info("\n--- Final answer ---")
-    logging.info(result["output"])
+    logging.info(f"{result['output']}")
     return state
 
 #Here is a simple 3 steps graph that is going to be working in the bellow "decision" condition
