@@ -18,13 +18,15 @@ logging.basicConfig(level=logging.INFO, format='%(levelname)s: %(message)s')
 # Creating the first analysis agent to check the prompt structure
 # This print part helps you to trace the graph decisions
 
-# llm = ChatOpenAI()
-
-MAIN_LLM = ollama.Ollama(
-                        # base_url=ollama_base_url, 
-                        # model='mapler/gpt2',
-                        model = 'llama3.1:70b'
-                        )
+model = "ollama" # chatgpt
+if model == "ollama":
+    MAIN_LLM = ollama.Ollama(
+                            # base_url=ollama_base_url, 
+                            # model='mapler/gpt2',
+                            model = 'llama3.1:70b'
+                            )
+else:
+    MAIN_LLM = ChatOpenAI()
 
 USER_MODEL = ollama.Ollama(model='llama2:7b')
 
@@ -55,9 +57,12 @@ def analyze_question(state):
     chain = prompt | llm
     response = chain.invoke({"input": state["input"]})
 
-    logging.info("Got response from LLM : ", response)
+    logging.info("Got response from LLM : ")
     # try:
-    decision = response.content.strip().lower()
+    if model=="ollama":
+        decision = response
+    else:
+        decision = response.content.strip().lower()
     # except:
     # decision = response
     return {"decision": decision, "input": state["input"]}
