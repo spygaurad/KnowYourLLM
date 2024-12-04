@@ -55,7 +55,7 @@ def analyze_question(state):
     chain = prompt | llm
     response = chain.invoke({"input": state["input"]})
 
-    logging.info("Got response from LLM : {response}")
+    logging.info("Got response from LLM : ", response)
     # try:
     decision = response.content.strip().lower()
     # except:
@@ -130,7 +130,7 @@ def process_question(state: UserInput):
     graph = create_graph()
     result = graph.invoke({"input": state["input"]})
     logging.info("\n--- Final answer ---")
-    logging.info({result["output"]})
+    logging.info(result["output"])
     return state
 
 #Here is a simple 3 steps graph that is going to be working in the bellow "decision" condition
