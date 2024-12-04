@@ -1,4 +1,5 @@
-from dotenv import load_dotenv
+
+
 # Load environment variables from the .env file
 from typing import Annotated
 
@@ -23,11 +24,11 @@ from langchain_ollama.llms import OllamaLLM
 
 from langchain_experimental.llms.ollama_functions import OllamaFunctions
 
-llm = OllamaFunctions(model="llama3.1:70b", format="json")
-
+from dotenv import load_dotenv
 load_dotenv()
 
 tavily_tool = TavilySearchResults(max_results=5)
+
 
 # This executes code locally, which can be unsafe
 python_repl_tool = PythonREPLTool()
@@ -41,7 +42,7 @@ def agent_node(state, agent, name):
     }
 
 
-members = ["Researcher", "Coder"]
+members = ["Coder", "Researcher"]
 system_prompt = (
     "You are a supervisor tasked with managing a conversation between the"
     " following workers:  {members}. Given the following user request,"
@@ -57,7 +58,8 @@ class routeResponse(BaseModel):
     next: Literal["FINISH", "Researcher", "Coder"]
 
 
-prompt = ChatPromptTemplate.from_messages(
+
+supervisor_prompt = ChatPromptTemplate.from_messages(
     [
         ("system", system_prompt),
         MessagesPlaceholder(variable_name="messages"),
@@ -70,13 +72,33 @@ prompt = ChatPromptTemplate.from_messages(
 ).partial(options=str(options), members=", ".join(members))
 
 
+question_generator_prompt = ChatPromptTemplate.from_messages(
+    [
+        MessagesPlaceholder(variable_name="messages"),
+        (
+            "system",
+            "Given above question by a user, generate 10 questions whose answers could help in figuring"
+            "out the answer. For example: If User asks whether an AI model has knowledge of C Programming,"
+            " your task is to generate questions related to C programming. Similarly if the user asks about"
+            "Mt everest, your task is to generate questions related to Mt everest."
+        ),
+    ]
+)
+
+
+
+# llm = OllamaFunctions(model="llama3.1:70b", format="json")
+llm = ChatOpenAI(model="gpt-4o-mini")
+
 # llm = OllamaLLM(model="llama3.1")
 
 def supervisor_agent(state):
-    supervisor_chain = prompt | llm.with_structured_output(routeResponse)
+    supervisor_chain = supervisor_prompt | llm.with_structured_output(routeResponse)
     return supervisor_chain.invoke(state)
 
-
+def question_generator_agent(state):
+    supervisor_chain = question_generator_prompt | llm
+    return supervisor_chain.invoke(state)
 
 # The agent state is the input to each node in the graph
 class AgentState(TypedDict):
@@ -95,17 +117,22 @@ code_agent = create_react_agent(llm, tools=[python_repl_tool])
 code_node = functools.partial(agent_node, agent=code_agent, name="Coder")
 
 workflow = StateGraph(AgentState)
-workflow.add_node("Researcher", research_node)
+# workflow.add_node("Researcher", research_node)
 workflow.add_node("Coder", code_node)
 workflow.add_node("supervisor", supervisor_agent)
+workflow.add_node("Researcher", question_generator_agent)
+
 
 for member in members:
     # We want our workers to ALWAYS "report back" to the supervisor when done
     workflow.add_edge(member, "supervisor")
+
+
 # The supervisor populates the "next" field in the graph state
 # which routes to a node or finishes
 conditional_map = {k: k for k in members}
 conditional_map["FINISH"] = END
+
 workflow.add_conditional_edges("supervisor", lambda x: x["next"], conditional_map)
 # Finally, add entrypoint
 workflow.add_edge(START, "supervisor")
@@ -115,10 +142,21 @@ graph = workflow.compile()
 for s in graph.stream(
     {
         "messages": [
-            HumanMessage(content="Code hello world and print it to the terminal")
+            HumanMessage(content="Does Llama3 model has knowledge of C programming?")
         ]
     }
 ):
     if "__end__" not in s:
         print(s)
         print("----")
+
+# for s in graph.stream(
+#     {
+#         "messages": [
+#             HumanMessage(content="Code hello world and print it to the terminal")
+#         ]
+#     }
+# ):
+#     if "__end__" not in s:
+#         print(s)
+#         print("----")
