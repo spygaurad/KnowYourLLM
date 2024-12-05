@@ -72,10 +72,12 @@ def answer_code_question(state):
     llm = get_llm()
     
     prompt = PromptTemplate.from_template(
-        "Generate 5 questions whose answer will help to answer the given question. : {input}"
+        "Generate a questions whose answer will help to answer the given question. Donot give any explanation : {input}"
     )
     chain = prompt | llm
     response = chain.invoke({"input": state["input"]})
+
+
     logging.info(f"Generating questions {response}")
     return {"output": response}
 
@@ -137,7 +139,7 @@ def get_user_input(state: UserInput) -> UserInput:
 def process_question(state: UserInput):
     graph = create_graph()
     result = graph.invoke({"input": state["input"]})
-    logging.info("\n--- Final answer ---")
+    # logging.info("\n--- Final answer ---")
     logging.info(f"{result['output']}")
     return state
 
