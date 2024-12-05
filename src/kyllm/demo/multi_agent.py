@@ -72,10 +72,11 @@ def answer_code_question(state):
     llm = get_llm()
     
     prompt = PromptTemplate.from_template(
-        "You are a software engineer. Answer this question with step by steps details : {input}"
+        "Generate 5 questions whose answer will help to answer the given question. : {input}"
     )
     chain = prompt | llm
     response = chain.invoke({"input": state["input"]})
+    logging.info(f"Generating questions {response}")
     return {"output": response}
 
 # Creating the generic agent
