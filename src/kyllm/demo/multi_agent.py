@@ -43,7 +43,7 @@ def analyze_question(state):
 
     The class name and the description of questions that falls under the class is defined below:
 
-    1) code : Question is about writing programs in programming language like java, C, python.
+    1) code : If the question is related to programming language like java, C, python.
     2) general : Question falls under general open ended question.
     3) model : Question is about loading an AI model.
     4) chart : Question is about generating charts or visualing data.
