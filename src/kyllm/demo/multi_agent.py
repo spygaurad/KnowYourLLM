@@ -83,7 +83,7 @@ def answer_code_question(state):
         "Provide short answer to given question : {response}"
     )
     chain = prompt | USER_MODEL
-    response = chain.invoke({"input": state["input"]})
+    response = chain.invoke({"response": response})
     logging.info(f"User Model Answered: {response}")
 
     logging.info(f"Analysing Model Answer: \n")
@@ -92,7 +92,7 @@ def answer_code_question(state):
         "Given question: {input} \n Answer: {response}. \n If the answer is correct, reply back positively else reply back with what is lacking."
     )
     chain = prompt | llm
-    response = chain.invoke({"input": state["input"]})
+    response = chain.invoke({"input": state["input"], "response":response})
 
     return {"output": response}
 
