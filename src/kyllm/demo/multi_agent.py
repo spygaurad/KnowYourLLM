@@ -76,9 +76,24 @@ def answer_code_question(state):
     )
     chain = prompt | llm
     response = chain.invoke({"input": state["input"]})
+    logging.info(f"Generating questions: \n {response}")
+    logging.info("Asking the question to User Model")
 
+    prompt = PromptTemplate.from_template(
+        "Provide short answer to given question : {response}"
+    )
+    chain = prompt | USER_MODEL
+    response = chain.invoke({"input": state["input"]})
+    logging.info(f"User Model Answered: {response}")
 
-    logging.info(f"Generating questions {response}")
+    logging.info(f"Analysing Model Answer: \n")
+
+    prompt = PromptTemplate.from_template(
+        "Given question: {input} \n Answer: {response}. \n If the answer is correct, reply back positively else reply back with what is lacking."
+    )
+    chain = prompt | llm
+    response = chain.invoke({"input": state["input"]})
+
     return {"output": response}
 
 # Creating the generic agent
