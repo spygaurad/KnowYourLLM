@@ -12,7 +12,7 @@ import logging
 from dotenv import load_dotenv
 from langchain_community.embeddings import OllamaEmbeddings
 
-from generate_embed import find_similar_function, find_nearest_function
+from generate_embed import find_nearest_function
 load_dotenv()
 
 # Configure logging
