@@ -119,7 +119,9 @@ def answer_code_question(state):
     )
     chain = prompt | USER_MODEL
     response = chain.invoke({"input": state["input"]})
-    logging.info(f"User Model Answered: {response}")
+    # logging.info(f"User Model Answered: {response}")
+    logging.info(f"User Model Answered: \n")
+
     return {"output": response}
 
 def preprocess(state):
@@ -139,7 +141,9 @@ def evaluate_answer(state):
 
     question,answer = preprocess(state)
     response = chain.invoke({"question":question,"input": answer})
-    logging.info(f"Evaluation: \n {response}")
+    # logging.info(f"Evaluation: \n {response}")
+    logging.info(f"Evaluation: \n")
+
     return {"output": response}
 
 # Creating the generic agent
