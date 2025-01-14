@@ -165,11 +165,15 @@ def load_model(state):
 def validate_and_load_model(state):
     global USER_MODEL  # Access the global variable
     model_name = state['input']
+
+    USER_MODEL = ollama.Ollama(model=model_name) #'llama2:7b'
     try:
-        USER_MODEL = ollama.Ollama(model=model_name) #'llama2:7b'
+        answer_code_question(state)
         response = "Succesfully loaded "+ model_name +". You can ask questions to your model now."
+
     except:
         model_name = ""
+        USER_MODEL = None
         response = "Invalid Model. Please provide me with Huggingface Model"
     # Validate model
     print(response)
