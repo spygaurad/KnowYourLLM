@@ -32,7 +32,7 @@ else:
     MAIN_LLM = ChatOpenAI()
 
 
-USER_MODEL = ollama.Ollama(model='llama2:7b')
+USER_MODEL = None
 
 ollama_emb = OllamaEmbeddings(
     model="nomic-embed-text",
@@ -163,8 +163,10 @@ def load_model(state):
     return {"output": response}
 
 def validate_and_load_model(state):
+    global USER_MODEL  # Access the global variable
+    model_name = state['input']
     try:
-        model_name = state['input']
+        USER_MODEL = ollama.Ollama(model='llama2:7b')
         response = "Succesfully loaded "+ model_name +". You can ask questions to your model now."
     except:
         model_name = ""
