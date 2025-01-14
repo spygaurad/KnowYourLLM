@@ -96,7 +96,7 @@ code_embed, evaluate_embed, general_embed, model_embed, chart_embed, attention_e
 
 def find_nearest_function(question):
     question_embed = np.array(get_embedding(question))
-    print(len(question_embed), len(code_embed))
+    # print(len(question_embed), len(code_embed))
     all_embeddings = [code_embed, evaluate_embed, general_embed, model_embed, chart_embed, attention_embed, info_embed]
     all_embeddings = [np.array(embed) for embed in all_embeddings]
     similarities = [cosine_similarity(question_embed.reshape(1, -1), embed.reshape(1, -1))[0][0] for embed in all_embeddings]
@@ -105,4 +105,4 @@ def find_nearest_function(question):
     categories = ["code", "evaluate", "general", "model", "chart", "attention", "info"]
     return categories[best_match_index]
 
-print(find_nearest_function("/evaluate_model Question:Hi Answer:Hello"))
+# print(find_nearest_function("/evaluate_model Question:Hi Answer:Hello"))

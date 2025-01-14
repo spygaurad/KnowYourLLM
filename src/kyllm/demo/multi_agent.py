@@ -159,6 +159,7 @@ def answer_generic_question(state):
 
 def load_model(state):
     response = "I support following models: \n 1. LLAMA \n 2. Mistral \n 3. GPT \n\n Provide me with the huggingface repo and I will help you understand your model."
+    print(response)
     return {"output": response}
 
 def validate_and_load_model(state):
@@ -169,6 +170,7 @@ def validate_and_load_model(state):
         model_name = ""
         response = "Invalid Model. Please provide me with Huggingface Model"
     # Validate model
+    print(response)
     return {"model_name":state['input'], "output": response}
 
 def chart_generator(state):
