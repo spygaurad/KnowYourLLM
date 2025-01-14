@@ -124,8 +124,9 @@ def answer_code_question(state):
 
 def preprocess(state):
     user_input = state['input'].lower()
-    answer = user_input.split["/evaluate_model"][-1].split("answer:")[-1]
-    question = user_input.split["/evaluate_model"][-1].split("answer:")[0].split("question:")[-1]
+    # print("Preprocessing: ", type(user_input), user_input)
+    answer = user_input.split("/evaluate_model")[-1].split("answer:")[-1]
+    question = user_input.split("/evaluate_model")[-1].split("answer:")[0].split("question:")[-1]
     return question, answer
 
 def evaluate_answer(state):
