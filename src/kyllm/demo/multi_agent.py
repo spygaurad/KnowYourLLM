@@ -10,6 +10,9 @@ from typing import Annotated, TypedDict
 from langgraph.graph import StateGraph, END
 import logging
 from dotenv import load_dotenv
+from langchain_community.embeddings import OllamaEmbeddings
+
+from generate_embed import find_similar_function, find_nearest_function
 load_dotenv()
 
 # Configure logging
@@ -28,17 +31,23 @@ if model == "ollama":
 else:
     MAIN_LLM = ChatOpenAI()
 
+
 USER_MODEL = ollama.Ollama(model='llama2:7b')
+
+ollama_emb = OllamaEmbeddings(
+    model="nomic-embed-text",
+)
 
 def get_llm():
     return MAIN_LLM
 
 
+'''
 def analyze_question(state):
     llm = get_llm()
     prompt = PromptTemplate.from_template("""
     You are an agent that needs to classify a user question into different classes.
-
+                                          
     Question : {input}
 
     The class name and the description of questions that falls under the class is defined below:
@@ -67,8 +76,7 @@ def analyze_question(state):
     # decision = response
     return {"decision": decision, "input": state["input"]}
 
-# Creating the code agent that could be way more technical
-def answer_code_question(state):
+def generate_code(state):
     llm = get_llm()
     
     prompt = PromptTemplate.from_template(
@@ -90,10 +98,47 @@ def answer_code_question(state):
 
     prompt = PromptTemplate.from_template(
         "Given question: {input} \n Answer: {response}. \n If the answer is correct, reply back positively else reply back with what is lacking."
+    
     )
+    # 
     chain = prompt | llm
     response = chain.invoke({"input": state["input"], "response":response})
 
+    return {"output": response}
+
+'''
+def analyze_question(state):
+    decision = find_nearest_function(state['input'])
+    return {"decision": decision, "input": state["input"]}
+
+# Creating the code agent that could be way more technical
+def answer_code_question(state):
+
+    prompt = PromptTemplate.from_template(
+        "Provide short answer to given question : {input}"
+    )
+    chain = prompt | USER_MODEL
+    response = chain.invoke({"input": state["input"]})
+    logging.info(f"User Model Answered: {response}")
+    return {"output": response}
+
+def preprocess(state):
+    user_input = state['input'].lower()
+    answer = user_input.split["/evaluate_model"][-1].split("answer:")[-1]
+    question = user_input.split["/evaluate_model"][-1].split("answer:")[0].split("question:")[-1]
+    return question, answer
+
+def evaluate_answer(state):
+    llm = get_llm()
+
+    prompt = PromptTemplate.from_template(
+        "This is the question asked: \n QUESTION: \n {question} \n This is the answer provided by user: \n USER ANSWER: \n{input}. \n Your task is to evaluate the answer and provide a score between 0 and 10 with a short and simple explanation. "
+    )
+    chain = prompt | llm
+
+    question,answer = preprocess(state)
+    response = chain.invoke({"question":question,"input": answer})
+    logging.info(f"Evaluation: \n {response}")
     return {"output": response}
 
 # Creating the generic agent
@@ -117,7 +162,12 @@ def load_model(state):
     return {"output": response}
 
 def validate_and_load_model(state):
-    response = "Succesfully loaded "+ state["input"]+". You can ask questions to your model now."
+    try:
+        model_name = state['input']
+        response = "Succesfully loaded "+ model_name +". You can ask questions to your model now."
+    except:
+        model_name = ""
+        response = "Invalid Model. Please provide me with Huggingface Model"
     # Validate model
     return {"model_name":state['input'], "output": response}
 
@@ -145,7 +195,7 @@ class UserInput(TypedDict):
     continue_conversation: bool
 
 def get_user_input(state: UserInput) -> UserInput:
-    user_input = input("\nEnter your question (ou 'q' to quit) : ")
+    user_input = input("\nUser (ou 'q' to quit) : ")
     return {
         "input": user_input,
         "continue_conversation": user_input.lower() != 'q'
@@ -164,6 +214,8 @@ def create_graph():
 
     workflow.add_node("analyze", analyze_question)
     workflow.add_node("code_agent", answer_code_question)
+    workflow.add_node("evaluate_agent", evaluate_answer)
+
     workflow.add_node("generic_agent", answer_generic_question)
 
     workflow.add_node("load_model", load_model)
@@ -182,6 +234,7 @@ def create_graph():
         lambda x: x["decision"],
         {
             "code": "code_agent",
+            "evaluate": "evaluate_agent",
             "general": "generic_agent",
             "model": "load_model",
             "chart": "chart_generator",
@@ -193,8 +246,8 @@ def create_graph():
 
     workflow.set_entry_point("analyze")
     workflow.add_edge("code_agent", END)
+    workflow.add_edge("evaluate_agent", END)
     workflow.add_edge("generic_agent", END)
-
     workflow.add_edge("validate_and_load_model", END)
     workflow.add_edge("chart_generator", END)
     workflow.add_edge("study_attention", END)
